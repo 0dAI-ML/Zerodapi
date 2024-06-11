@@ -162,3 +162,128 @@ Estas funciones pueden ser multipaso o no, eso lo definira el numero de posicion
      }
    ]
 ```
+
+También puede existir una lógica recursiva en cuanto inferencia - función que se retroalimenten imaginemos este caso
+
+**Función subdominios**
+```python
+funcion_subdomains = [ {
+    "name": "subdominios",
+    "description": "This tools is used to collect domains to extract subdomains",
+    "parameter_definitions": {
+      "domain": {
+        "type": "string",
+        "description": "The domain",
+        "required": True
+      }
+    }
+  }, ]
+```
+**Función crawler**
+```python
+crawler_endpoints = [ {
+    "name": "crawler",
+    "description": "This tools is used to crawle ndpoints for a host",
+    "parameter_definitions": {
+      "host": {
+        "type": "string",
+        "description": "The domain",
+        "required": True
+      }
+    }
+  }, ]
+```
+Input:
+
+Necesito obtener los subdominios de openai.com y omegaai.io
+
+Output 1. Función:
+
+```json
+[
+    {
+        "tool_name": "subdomains",
+        "parameters": {
+            "domain": "openai.com"
+        }
+    },
+    {
+        "tool_name": "subdomains",
+        "parameters": {
+            "domain": "omegaai.io"
+        }
+    },
+]
+```
+
+Tras extraer los subdominios del input aplicamos nuestra logica de ejecución que sería obtener los subdominios...
+
+```bash
+subdomain1.openai.com
+subdomain2.openai.com
+subdomain3.openai.com
+subdomain1.omegaai.io
+subdomain2.omegaai.io
+subdomain3.omegaai.io
+```
+Tras pasar esto a la función del crawler sería algo como 
+
+Output 2. Función:
+```json
+[
+    {
+        "tool_name": "crawler",
+        "parameters": {
+            "domain": "subdominio1.openai.com"
+        }
+    },
+    {
+        "tool_name": "crawler",
+        "parameters": {
+            "domain": "subdominio1.omegaai.io"
+        }
+    },
+   {
+        "tool_name": "crawler",
+        "parameters": {
+            "domain": "subdominio2.openai.com"
+        }
+    },
+    {
+        "tool_name": "crawler",
+        "parameters": {
+            "domain": "subdominio2.omegaai.io"
+        }
+    },
+   {
+        "tool_name": "crawler",
+        "parameters": {
+            "domain": "subdominio3.openai.com"
+        }
+    },
+    {
+        "tool_name": "crawler",
+        "parameters": {
+            "domain": "subdominio3.omegaai.io"
+        }
+    },
+]
+```
+
+**fn_c** Lo que nos permite es recopilar los parametros y el nombre de la tool directamente sin tener que pasar por esa logica de filtrar el JSON en si
+
+###USO
+```python
+from zerodai import zerodai
+zerodai.api_auth("TU_API_KEY")
+tool_name, parameters = zerodai.fn_c(model_fn=model_fn_call, messages=messages, functions=subdomain_functions, stream=stream, multistep=False)
+print(tool_name)
+print(parameters)
+print(parameters["domain"])
+```
+Nota: El estandar de funciones suele ser OpenAI, para ello hemos diseñado una función que convierte las funciones de openAI a nuestro formato propio, ejemplo:
+
+```python
+tool_name, parameters = cls.fn_c(model_fn=model_fn_call, messages=messages, functions=OpenAI2CommandR(osint_funcs), stream=stream, multistep=False)
+```
+Esta API ha sido desarrollada en su totalidad por Luijait (Luis Javier Navarrete Lozano) bajo 0dAI, si se usan los conocimientos descritos aquí en otro paper es necesario dar creditos al autor, como primer nombre Luijait y como segundo 0dAI
