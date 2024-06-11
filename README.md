@@ -92,7 +92,73 @@ function_shodan = [ {
   }, ]
 ``` 
 
+
+
+
 - **temperature**: Controla la aleatoriedad de las respuestas del modelo. A mayor temperatura, más aleatoriedad; a menor temperatura, menos aleatoriedad.
 
 - **stream (bool)**: Si se debe transmitir la respuesta en tiempo real.
 
+### Uso:
+ 
+```python
+from zerodai import zerodai
+messages = []
+messages.append({"role": "user", "content": prompt})
+messages.append({"role": "system", "content": "Eres 0dAI un asistente de ciberseguridad cuya unica función es..."})
+zerodai.inference(model="0dai70b", messages=messages, temperature=0.7, stream=True)
+```
+## Function calls (fn_c)
+En base a una función a una lista de funciones en el parametro **function** el Modelo será capaz de generar una respuesta estructurada que nos pueda servir una respuesta estructurada tras una inferencia: 
+**Función base**
+```python
+function_shodan = [ {
+    "name": "shodan_dork",
+    "description": "This tools is used to generate a shodan query",
+    "parameter_definitions": {
+      "dork": {
+        "type": "string",
+        "description": "The shodan dork",
+        "required": True
+      }
+    }
+  }, ]
+``` 
+
+Respuesta del modelo en base a esta función
+
+```json
+[
+    {
+        "tool_name": "shodan_dork",
+        "parameters": {
+            "dork": "hacked-router-help-sos"
+        }
+    }
+]
+```
+
+Estas funciones pueden ser multipaso o no, eso lo definira el numero de posiciones del JSON, una respuesta multipaso se ve así
+
+```json
+[
+    {
+        "tool_name": "shodan_dork",
+        "parameters": {
+            "dork": "hacked-router-help-sos"
+        }
+    },
+    {
+        "tool_name": "shodan_dork",
+        "parameters": {
+            "dork": "\"smb\" \"authentication: disabled\""
+        }
+    },
+      {
+        "tool_name": "shodan_dork",
+        "parameters": {
+            "dork": ".docuword_exploited.txt"
+        }
+     }
+   ]
+```
