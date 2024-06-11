@@ -10,7 +10,7 @@ pip install zerodai==0.0.0.20
 ```bash
 export zerodapi_key="TU_API_KEY"
 ```
-
+Obtén tu api key https://zerodai.com
 Chat Conversacional Simple - Sin memoria
 ```python
 
