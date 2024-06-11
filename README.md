@@ -53,8 +53,8 @@ Es el método base de interacción con el modelo y cuenta con los siguientes par
     - 8 bits
     - No function calls
 
-  - **0daifn**: Modelo flexible con una ventana de contexto grande, nivel de GPT-4 en cuanto a código, bueno para preguntas y scripts complejos de ciberseguridad.
-    - 64k de contexto
+  - **0daifn**: Modelo recomendado para function calls, el mejor en function calls mucho contexto, mas liviano que 0dai70b, además a nivel de function calls multipaso esta a nivel del mejor gpt
+    - 64k de contexto 
     - 16 bits
     - Capacidad de Function Calls
 
