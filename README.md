@@ -286,4 +286,140 @@ Nota: El estandar de funciones suele ser OpenAI, para ello hemos diseñado una f
 ```python
 tool_name, parameters = cls.fn_c(model_fn=model_fn_call, messages=messages, functions=OpenAI2CommandR(osint_funcs), stream=stream, multistep=False)
 ```
+
+## Agentes
+
+Zerodai incluye un sistema de agentes que se puede extender mediante funciones y un modulo de ejecución 
+```python
+def exec_module(tool, arguments, multitool=True):
+    output = ""
+    if tool == "Shodan":
+        process = subprocess.Popen(["nmap", "-Pn", next(iter(arguments.values()))], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        for line in iter(process.stdout.readline, b''):
+            output += line.decode('utf-8').strip()
+            print(line.decode('utf-8').strip())
+            
+    elif tool == "XSS-Scanner" or tool == "nuclei-http":
+      try:
+        process = subprocess.Popen(["nuclei", "-t", "dns", next(iter(arguments.values()))], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="/home/omegaleitatadmin/exllamav2/0dAPI/nuclei-templates/nuclei-templates-9.8.6/")
+        for line in iter(process.stdout.readline, b''):
+            output += line.decode('utf-8').strip()
+            print(line.decode('utf-8').strip())
+      except:
+        pass
+    elif tool == "WAF-tool":
+        process = subprocess.Popen(["python3", "whatwaf", "-u", "https://" + next(iter(arguments.values()))], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="/home/omegaleitatadmin/exllamav2/0dAPI/WhatWaf")
+        for line in iter(process.stdout.readline, b''):
+            output += line.decode('utf-8').strip()
+            print(line.decode('utf-8').strip())
+      
+    elif tool == "Attack":
+        process = subprocess.Popen(["nmap", "-Pn", next(iter(arguments.values()))], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        for line in iter(process.stdout.readline, b''):
+            output += line.decode('utf-8').strip()
+            print(line.decode('utf-8').strip())
+    elif tool == "OSINT":
+        ZeroDAI.Osint(next(iter(arguments.values())))
+        
+    return output
+```
+Este codigo debe de ir a la par que las funciones usadas
+
+```python
+python_functions = [ {
+    "name": "Shodan",
+    "description": "tool for shodan",
+    "parameter_definitions": {
+      "ip": {
+        "type": "string",
+        "description": "The ip",
+        "required": True
+      }
+    }
+  },
+ {
+    "name": "nuclei-http",
+    "description": "This tools is use for nuclei",
+    "parameter_definitions": {
+      "target": {
+        "type": "string",
+        "description": "The domain",
+        "required": True
+      }
+    }
+  },
+ {
+    "name": "WAF-tool",
+    "description": "This tools is used for waf",
+    "parameter_definitions": {
+      "webapp": {
+        "type": "string",
+        "description": "The webapp",
+        "required": True
+      }
+    }
+  },
+ {
+    "name": "Attack",
+    "description": "This tools is used to attack a host",
+    "parameter_definitions": {
+      "host": {
+        "type": "string",
+        "description": "The domain",
+        "required": True
+      }
+    }
+  }, ]
+```
+Esto permite hacer agentes dinamicos multipaso y multiherramienta
+
+###Uso
+
+```python
+zerodai.agent(model="0dai70b", 
+                  messages=messages, 
+                  model_fn_call="0daifn", 
+                  temperature=0.7,
+                  functions=python_functions,
+                  exec_module=exec_module,
+                  exec_module_bool=True, 
+                  multistep=True)
+```
+**exec_module-bool** para indicar si queremos usar un modulo de ejecución (Si ponemos True y no un modulo de ejecución ejecutara uno por defecto)
+
+**exec_module** modulo de ejecución
+
+**functions** Funciones acorde al modulo de ejecución
+
+**multistep** Si queremos que se ejecuten varios pasos en cada iteraccion del modelo de function calls
+
+##Pruebas de concepto 
+
+## 4. DATA LEAKS PoC
+
+[![DarkGPT-Osint](https://imgur.com/9JgM806.png)](https://youtu.be/C8ykBmlYm3Y)
+
+## 5. MultiStep-Agent PoC
+
+[![DarkGPT-Osint](https://imgur.com/poFbqJ2.png)](https://youtu.be/04IQ31xc8ws)
+
+
+
+Esta API viene con integraciones de shodan, varios servicios de datos, censys y mucho mas, estos servicios solo requieren de la API de 0dAI:
+
+## Filtraciones de datos
+zerodai.Osint(prompt)
+
+**prompt** - Simple mensaje en lenguaje natural para que el LLM realice una busqueda en fuentes de filtraciones de datos privadas nuestra y te de las filtraciones de un usuario
+
+## Shodan
+zerodai.Osint(prompt)
+
+**prompt** - Simple mensaje en lenguaje natural para que el LLM realice una busqueda en shodan y te de los resultados directamente
+
+## Rubber ducky
+zerodai.rubberducky_gen(prompt)
+
+**prompt** - Simple mensaje en lenguaje natural para que el LLM realice un payload valido de rubber ducy
+
 Esta API ha sido desarrollada en su totalidad por Luijait (Luis Javier Navarrete Lozano) bajo 0dAI, si se usan los conocimientos descritos aquí en otro paper es necesario dar creditos al autor, como primer nombre Luijait y como segundo 0dAI
